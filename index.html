@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سينرجي للتوزيع - اطلب الآن</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f172a;--ink:#1e293b;--mute:#64748b;--line:#e2e8f0;--bg:#f1f4f8;--card:#fff;--accent:#ff7828;--accent-d:#ea580c;--ok:#059669}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:120px}
+body{font-family:Tajawal,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:96px}
+header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;padding:10px 14px 8px}
+header h1{font-size:18px;font-weight:800}
+header p{font-size:12px;color:#94a3b8;margin-bottom:8px}
+#q{width:100%;border:0;border-radius:10px;padding:10px 12px;font:inherit;font-size:15px}
+#chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+#chips button{flex:none;border:1px solid #334155;background:transparent;color:#cbd5e1;border-radius:99px;padding:5px 12px;font:inherit;font-size:13px}
+#chips button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+#grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;max-width:1100px;margin:auto}
+@media(min-width:700px){#grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card.in{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff}
+.card .b{padding:8px 10px 10px;display:flex;flex-direction:column;gap:3px;flex:1}
+.card h3{font-size:14px;font-weight:700;line-height:1.35}
+.pack{font-size:12px;color:var(--mute)}
+.usd{font-size:17px;font-weight:800}
+.syp{font-size:12px;color:var(--mute)}
+.pc{font-size:11px;color:var(--ok)}
+.step{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:6px}
+.step button{width:38px;height:38px;border:0;border-radius:10px;font-size:22px;font-weight:700;background:var(--navy);color:#fff}
+.step button[data-a=dec]{background:#e2e8f0;color:var(--ink)}
+.step .q{font-size:17px;font-weight:800;min-width:24px;text-align:center}
+#empty{text-align:center;color:var(--mute);padding:40px 12px}
+#bar{position:fixed;inset:auto 0 0 0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;z-index:6;transform:translateY(110%);transition:transform .2s}
+#bar.show{transform:none}
+#bar .t{flex:1;line-height:1.3}
+#bar .t b{font-size:18px}
+#bar .t small{display:block;font-size:12px;color:var(--mute)}
+.btn{border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-weight:800;font-size:16px;padding:12px 18px}
+.btn:active{background:var(--accent-d)}
+dialog{border:0;border-radius:16px;padding:0;width:min(480px,94vw);max-height:90vh;margin:auto;font-family:inherit}
+dialog::backdrop{background:rgba(15,23,42,.6)}
+.sh{padding:16px;display:flex;flex-direction:column;gap:10px}
+.sh h2{font-size:18px}
+.sh input,.sh textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:15px}
+#lines{max-height:30vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:14px}
+#lines div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line)}
+#lines div:last-child{border:0}
+.tot{display:flex;justify-content:space-between;font-weight:800;font-size:17px}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+.ghost{background:#e2e8f0;color:var(--ink)}
+.err{color:#dc2626;font-size:13px;min-height:16px}
+:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>سينرجي للتوزيع</h1>
+  <p>اختر المنتجات والكميات، ثم أرسل الطلبية على واتساب</p>
+  <input id="q" type="search" placeholder="ابحث عن منتج..." autocomplete="off">
+  <div id="chips"></div>
+</header>
+<main><div id="grid"></div><div id="empty" hidden>ما في منتجات مطابقة للبحث</div></main>
+
+<div id="bar">
+  <div class="t"><b id="tUsd"></b><small id="tInfo"></small></div>
+  <button class="btn" id="open">مراجعة الطلب</button>
+</div>
+
+<dialog id="sheet">
+  <div class="sh">
+    <h2>مراجعة الطلب</h2>
+    <div id="lines"></div>
+    <div class="tot"><span>المجموع</span><span id="sTot"></span></div>
+    <input id="nm" placeholder="الاسم" autocomplete="name">
+    <input id="shop" placeholder="اسم المحل / العنوان" autocomplete="street-address">
+    <textarea id="note" rows="2" placeholder="ملاحظات (اختياري)"></textarea>
+    <div class="err" id="err"></div>
+    <div class="row">
+      <button class="btn ghost" id="close">رجوع</button>
+      <button class="btn" id="send">إرسال على واتساب</button>
+    </div>
+    <button class="btn ghost" id="clear" style="font-size:13px;padding:8px">تفريغ السلة</button>
+  </div>
+</dialog>
+
+<script>
+const PHONE = '963937281077';   // رقم الواتساب بصيغة دولية
+const RATE = 14700;             // سعر الصرف (ل.س لكل دولار)
+const ROUND = 500;              // تقريب الليرة لأقرب 500
+
+const $ = s => document.querySelector(s);
+const fmtUSD = n => '$' + n.toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const fmtSYP = n => (Math.round(n * RATE / ROUND) * ROUND).toLocaleString('en') + ' ل.س';
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+let products = [], byId = new Map(), brand = 'الكل', term = '';
+let cart = store.get('synergy_cart_v1', {});
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function card(p) {
+  const c = el('div', 'card'); c.dataset.id = p.id;
+  const img = el('img'); img.src = 'images/' + p.img; img.alt = p.name; img.loading = 'lazy';
+  const b = el('div', 'b');
+  b.append(el('h3', '', p.name), el('div', 'pack', p.unit + ': ' + p.qty + ' قطعة'),
+           el('div', 'usd', fmtUSD(p.box)), el('div', 'syp', fmtSYP(p.box)),
+           el('div', 'pc', 'سعر القطعة ' + fmtUSD(p.box / p.qty)));
+  const s = el('div', 'step');
+  const plus = el('button', '', '+'); plus.dataset.a = 'inc'; plus.setAttribute('aria-label', 'زيادة');
+  const q = el('span', 'q');
+  const minus = el('button', '', '−'); minus.dataset.a = 'dec'; minus.setAttribute('aria-label', 'نقصان');
+  s.append(plus, q, minus);
+  b.append(s); c.append(img, b);
+  paintCard(c);
+  return c;
+}
+
+function paintCard(c) {
+  const n = cart[c.dataset.id] || 0;
+  c.querySelector('.q').textContent = n;
+  c.classList.toggle('in', n > 0);
+}
+
+function render() {
+  const grid = $('#grid'); grid.replaceChildren();
+  const t = term.trim().toLowerCase();
+  const list = products.filter(p => (brand === 'الكل' || p.brand === brand) &&
+    (!t || (p.name + ' ' + p.brand).toLowerCase().includes(t)));
+  list.forEach(p => grid.append(card(p)));
+  $('#empty').hidden = list.length > 0;
+}
+
+function totals() {
+  let boxes = 0, usd = 0, lines = [];
+  for (const [id, n] of Object.entries(cart)) {
+    const p = byId.get(id); if (!p || n <= 0) continue;
+    boxes += n; usd += n * p.box; lines.push([p, n]);
+  }
+  return {boxes, usd, lines};
+}
+
+function paintBar() {
+  const t = totals();
+  $('#bar').classList.toggle('show', t.boxes > 0);
+  $('#tUsd').textContent = fmtUSD(t.usd);
+  $('#tInfo').textContent = t.lines.length + ' صنف · ' + t.boxes + ' وحدة · ' + fmtSYP(t.usd);
+}
+
+function setQty(id, n) {
+  n = Math.max(0, Math.min(999, n));
+  if (n) cart[id] = n; else delete cart[id];
+  store.set('synergy_cart_v1', cart);
+  const c = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
+  if (c) paintCard(c);
+  paintBar();
+}
+
+$('#grid').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-a]'); if (!btn) return;
+  const id = btn.closest('.card').dataset.id;
+  setQty(id, (cart[id] || 0) + (btn.dataset.a === 'inc' ? 1 : -1));
+});
+
+$('#q').addEventListener('input', e => { term = e.target.value; render(); });
+
+function buildChips() {
+  const box = $('#chips'); box.replaceChildren();
+  ['الكل', ...new Set(products.map(p => p.brand))].forEach(b => {
+    const x = el('button', b === brand ? 'on' : '', b);
+    x.addEventListener('click', () => { brand = b; buildChips(); render(); });
+    box.append(x);
+  });
+}
+
+function openSheet() {
+  const t = totals();
+  const box = $('#lines'); box.replaceChildren();
+  t.lines.forEach(([p, n]) => {
+    const r = el('div'); r.append(el('span', '', p.name + ' × ' + n), el('b', '', fmtUSD(n * p.box)));
+    box.append(r);
+  });
+  $('#sTot').textContent = fmtUSD(t.usd) + ' ≈ ' + fmtSYP(t.usd);
+  $('#nm').value = store.get('synergy_cust_name', '');
+  $('#shop').value = store.get('synergy_cust_shop', '');
+  $('#err').textContent = '';
+  $('#sheet').showModal();
+}
+
+function send() {
+  const t = totals(), nm = $('#nm').value.trim(), shop = $('#shop').value.trim(), note = $('#note').value.trim();
+  if (!t.lines.length) { $('#err').textContent = 'السلة فاضية'; return; }
+  if (!nm || !shop) { $('#err').textContent = 'اكتب الاسم واسم المحل أو العنوان'; return; }
+  store.set('synergy_cust_name', nm); store.set('synergy_cust_shop', shop);
+  const L = ['طلبية جديدة', 'الاسم: ' + nm, 'المحل/العنوان: ' + shop, '------------'];
+  t.lines.forEach(([p, n]) => L.push('• ' + p.name + ' × ' + n + ' ' + p.unit + ' = ' + fmtUSD(n * p.box)));
+  L.push('------------', 'المجموع: ' + fmtUSD(t.usd) + ' (≈ ' + fmtSYP(t.usd) + ')');
+  if (note) L.push('ملاحظات: ' + note);
+  window.open('https://wa.me/' + PHONE + '?text=' + encodeURIComponent(L.join('\n')), '_blank');
+}
+
+$('#open').addEventListener('click', openSheet);
+$('#close').addEventListener('click', () => $('#sheet').close());
+$('#send').addEventListener('click', send);
+$('#clear').addEventListener('click', () => {
+  if (!confirm('تفريغ السلة؟')) return;
+  cart = {}; store.set('synergy_cart_v1', cart);
+  $('#sheet').close(); render(); paintBar();
+});
+
+fetch('products.json').then(r => r.json()).then(d => {
+  products = d; products.forEach(p => byId.set(String(p.id), p));
+  for (const id of Object.keys(cart)) if (!byId.has(id)) delete cart[id];
+  buildChips(); render(); paintBar();
+}).catch(() => {
+  $('#empty').hidden = false;
+  $('#empty').textContent = 'تعذّر تحميل المنتجات. افتح الصفحة من الرابط وليس من الملف مباشرة.';
+});
+</script>
+</body>
+</html>
